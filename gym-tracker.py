@@ -60,28 +60,47 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
     
-    /* 4. SIDEBAR TOGGLE ARROW FIX */
-    /* We hide the header decoration but FORCE the sidebar button to show */
-    header {visibility: hidden;}
-    [data-testid="stSidebarCollapsedControl"] {
-        visibility: visible !important;
-        display: block !important;
-        color: #3b82f6 !important; /* Neon Blue Arrow */
-        background-color: rgba(30, 41, 59, 0.5);
-        border-radius: 50%;
-        padding: 5px;
-        transition: all 0.3s;
+    /* --- FIX: SIDEBAR TOGGLE VISIBILITY --- */
+    
+    /* Make the header transparent but NOT hidden */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
     }
+    
+    /* Hide the top colored decoration line */
+    [data-testid="stDecoration"] {
+        display: none;
+    }
+    
+    /* Hide the 'Deploy' button and hamburger menu if you want a cleaner look */
+    .stDeployButton {
+        display: none;
+    }
+    
+    /* FORCE THE SIDEBAR ARROW TO BE VISIBLE AND STYLED */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        color: #3b82f6 !important; /* Neon Blue */
+        background-color: rgba(15, 23, 42, 0.8); /* Dark Blue Bg */
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+        padding: 4px;
+        margin-top: 10px;
+        margin-left: 10px;
+        transition: all 0.3s ease;
+    }
+    
     [data-testid="stSidebarCollapsedControl"]:hover {
         background-color: #3b82f6;
         color: white !important;
         box-shadow: 0 0 15px #3b82f6;
+        transform: scale(1.1);
     }
     
-    /* HIDE JUNK */
-    #MainMenu, footer {visibility: hidden;}
+    /* HIDE FOOTER ONLY */
+    footer {visibility: hidden;}
     
-    /* 5. TITAN GLASS CARDS */
+    /* 4. TITAN GLASS CARDS */
     .titan-card {
         background: rgba(30, 41, 59, 0.4);
         backdrop-filter: blur(16px) saturate(180%);
@@ -93,12 +112,8 @@ st.markdown("""
         margin-bottom: 24px;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }
-    .titan-card:hover {
-        border-color: rgba(59, 130, 246, 0.3);
-        box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
-    }
 
-    /* 6. EXERCISE STACK ITEM */
+    /* 5. EXERCISE STACK ITEM */
     .exercise-card {
         background: linear-gradient(90deg, rgba(20, 20, 25, 0.8), rgba(35, 35, 45, 0.6));
         border-left: 4px solid #3b82f6;
@@ -113,7 +128,7 @@ st.markdown("""
     }
     @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
 
-    /* 7. INPUT FIELDS */
+    /* 6. INPUT FIELDS */
     .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
         background-color: rgba(0, 0, 0, 0.3) !important;
         color: #e5e7eb !important;
@@ -125,7 +140,7 @@ st.markdown("""
         box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
     }
     
-    /* 8. BUTTONS */
+    /* 7. BUTTONS */
     .stButton button {
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: white;
@@ -143,7 +158,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
     }
 
-    /* 9. FINISH BUTTON */
+    /* 8. FINISH BUTTON */
     .finish-btn button {
         background: linear-gradient(135deg, #059669, #047857) !important;
     }
@@ -151,7 +166,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(16, 185, 129, 0.6) !important;
     }
 
-    /* 10. BMI GRADIENT BAR */
+    /* 9. BMI GRADIENT BAR */
     .bmi-bar-bg {
         width: 100%;
         height: 12px;
@@ -175,7 +190,7 @@ st.markdown("""
         transition: left 0.5s ease;
     }
 
-    /* 11. STATUS DOT */
+    /* 10. STATUS DOT */
     .status-dot {
         height: 10px;
         width: 10px;
