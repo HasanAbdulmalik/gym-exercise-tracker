@@ -40,12 +40,12 @@ if 'connected' not in st.session_state:
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap');
-
+    
     .stApp {
         background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 60%, #000000 100%);
         font-family: 'Inter', sans-serif;
     }
-
+    
     h1, h2, h3, h4 {
         font-family: 'Rajdhani', sans-serif !important;
         text-transform: uppercase;
@@ -64,9 +64,8 @@ st.markdown("""
         padding: 24px;
         margin-bottom: 24px;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease; /* SMOOTH ANIMATION */
+        transition: all 0.3s ease;
     }
-    
     .titan-card:hover {
         border-color: rgba(59, 130, 246, 0.5);
         box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
@@ -94,7 +93,6 @@ st.markdown("""
         border-radius: 8px !important;
         transition: all 0.3s ease;
     }
-   
     .stTextInput input:hover, .stNumberInput input:hover, .stSelectbox div[data-baseweb="select"]:hover {
         border-color: #3b82f6 !important;
         box-shadow: 0 0 15px rgba(59, 130, 246, 0.2) !important;
@@ -102,6 +100,13 @@ st.markdown("""
     .stTextInput input:focus, .stNumberInput input:focus {
         border-color: #3b82f6 !important;
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
+    }
+    
+    .stSelectbox div[data-baseweb="select"], 
+    .stSelectbox div[data-baseweb="select"] *,
+    .stSelectbox div[role="combobox"],
+    .stSelectbox input {
+        cursor: pointer !important;
     }
 
     div[data-testid="stForm"] button {
@@ -257,7 +262,7 @@ else:
                 with c1: ex_name = st.selectbox("MODULE", list(EXERCISES_DB.keys()))
                 with c2: sets = st.number_input("SETS", 1, 10, 3)
                 with c3: reps = st.number_input("REPS", 1, 50, 10)
-
+                
                 if st.form_submit_button("ADD TO STACK"):
                     cals = calculate_calories(EXERCISES_DB[ex_name]['met'], weight, sets, reps)
                     st.session_state.current_workout.append({
@@ -307,27 +312,27 @@ else:
 
     with tab2:
         st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 PERFORMANCE")
+        st.markdown("### 📊 MARKET PERFORMANCE")
         
         if st.session_state.history:
             df = pd.DataFrame(st.session_state.history)
-
-            daily_df = df.groupby("Date")['Burn'].sum().reset_index()
+            
+            daily_df = daily_df = df.groupby("Date")['Burn'].sum().reset_index()
             daily_df = daily_df.sort_values("Date")
-
+            
             daily_df['Change'] = daily_df['Burn'].diff()
             daily_df['Change'] = daily_df['Change'].fillna(1)
             
             fig = go.Figure()
-
+            
             fig.add_trace(go.Scatter(
                 x=daily_df['Date'], 
                 y=daily_df['Burn'],
                 mode='lines+markers',
-                line=dict(color='#00ff00', width=3), 
+                line=dict(color='#00ff00', width=3),
                 marker=dict(size=8, color='white', line=dict(width=2, color='#00ff00')),
-                fill='tozeroy', 
-                fillcolor='rgba(0, 255, 0, 0.1)', 
+                fill='tozeroy',
+                fillcolor='rgba(0, 255, 0, 0.1)',
                 name='Energy Output'
             ))
 
@@ -350,7 +355,7 @@ else:
             )
 
             st.plotly_chart(fig, use_container_width=True)
-
+            
             m1, m2, m3 = st.columns(3)
             m1.metric("TOTAL MARKET CAP (KCAL)", f"{int(df['Burn'].sum())}")
             m2.metric("VOLUME (SETS)", int(df['Sets'].sum()))
