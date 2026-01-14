@@ -64,7 +64,7 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
     
-    /* SUCCESS LOG CARD (The "Advanced" Popup) */
+    /* SUCCESS LOG CARD */
     .log-success-card {
         background: linear-gradient(90deg, #064e3b, #065f46);
         border: 1px solid #10b981;
@@ -103,8 +103,8 @@ st.markdown("""
         border-radius: 6px;
         font-weight: bold;
         text-align: center;
-        margin-top: 5px;
-        margin-bottom: 5px;
+        margin-top: 15px; 
+        margin-bottom: 15px;
     }
     .status-inactive { background-color: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
     .status-active { background-color: #052e16; color: #4ade80; border: 1px solid #14532d; }
@@ -126,8 +126,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DATA LOGIC (NOW WITH ICONS) ---
-# Each exercise now has a 'met' value and an 'icon'
+# --- 4. DATA LOGIC ---
 EXERCISES_DB = {
     "Push Ups": {"met": 3.8, "icon": "💪"},
     "Squats": {"met": 5.0, "icon": "🦵"},
@@ -164,21 +163,15 @@ with st.sidebar:
         height = st.number_input("Height (m)", 1.0, 2.5, 1.75)
     
     bmi = weight / (height ** 2)
-
-    st.write("") # Spacer
     
     # CONNECT BUTTON logic
     if not st.session_state.connected:
         st.markdown('<div class="status-badge status-inactive">🔴 SYSTEM INACTIVE</div>', unsafe_allow_html=True)
-        # Added spacer here
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("INITIALIZE SYSTEM"):
             st.session_state.connected = True
             st.rerun()
     else:
         st.markdown('<div class="status-badge status-active">🟢 SYSTEM CONNECTED</div>', unsafe_allow_html=True)
-        # Added spacer here
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("DISCONNECT"):
             st.session_state.connected = False
             st.rerun()
@@ -208,7 +201,7 @@ else:
         # LEFT COLUMN (Health Status)
         with col1:
             st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-            st.markdown("### 🧬 BIO-STATUS")
+            st.markdown("### 🧬 BMI INDEX")
             
             # BMI Logic
             if bmi < 18.5: status, color = "UNDERWEIGHT", "#3b82f6"
@@ -242,23 +235,18 @@ else:
             with st.form("gym_form", clear_on_submit=True):
                 c1, c2, c3 = st.columns([2, 1, 1], gap="medium")
                 with c1:
-                    # Dropdown using the keys
                     exercise_name = st.selectbox("Select Module", list(EXERCISES_DB.keys()))
                 with c2:
                     sets = st.number_input("Sets", 1, 10, 3)
                 with c3:
                     reps = st.number_input("Reps", 1, 50, 10)
                 
-                st.write("")
+                # Removed the empty spacer call here
                 
                 if st.form_submit_button("LOG WORKOUT"):
-                    # Get Data from DB
                     ex_data = EXERCISES_DB[exercise_name]
-                    
-                    # Calculate
                     cals = calculate_calories(ex_data['met'], weight, sets, reps)
                     
-                    # Save
                     entry = {
                         "Date": datetime.now().strftime("%Y-%m-%d"),
                         "Time": datetime.now().strftime("%H:%M"),
@@ -269,8 +257,7 @@ else:
                     }
                     st.session_state.history = save_data(entry)
                     
-                    # --- THE ADVANCED LOG DISPLAY (HTML INJECTION) ---
-                    # This creates the green "Card" popup you wanted
+                    # ADVANCED LOG DISPLAY
                     st.markdown(f"""
                         <div class="log-success-card">
                             <h3 style="margin:0; color: #ecfdf5 !important; font-size: 1.2rem;">
@@ -294,7 +281,6 @@ else:
         if st.session_state.history:
             df = pd.DataFrame(st.session_state.history)
             
-            # Metric Cards
             m1, m2, m3 = st.columns(3)
             total_burn = df['Burn'].sum()
             m1.metric("Total Burn (All Time)", f"{int(total_burn)} kcal")
@@ -303,7 +289,6 @@ else:
             
             st.markdown("---")
             
-            # GRAPH: Calories over Time
             st.markdown("#### 🔥 Calorie Burn Timeline")
             chart_df = df.groupby("Date")['Burn'].sum().reset_index()
             
@@ -316,7 +301,6 @@ else:
             fig_hist.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_hist, use_container_width=True)
             
-            # RAW DATA
             with st.expander("View Raw Data Log"):
                 st.dataframe(df, use_container_width=True)
         else:
