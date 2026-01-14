@@ -1,92 +1,18 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import streamlit_shadcn_ui as ui
 from datetime import datetime
 
-# --- 1. PAGE CONFIGURATION (Must be first) ---
+# --- 1. CONFIGURATION ---
 st.set_page_config(
     page_title="Titan Pro",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS INJECTION (The "Tailwind" Look) ---
-# We inject raw CSS to overwrite Streamlit's default boring look.
-st.markdown("""
-    <style>
-    /* 1. Main Background - Deep Slate (Tailwind Slate-900) */
-    .stApp {
-        background-color: #0f172a;
-        color: #e2e8f0;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* 2. Remove Streamlit Header/Footer junk */
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* 3. Custom Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #1e293b; /* Slate-800 */
-        border-right: 1px solid #334155;
-    }
-    
-    /* 4. "Titan Pro" Card Style */
-    .titan-card {
-        background-color: #1e293b;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #334155;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-    
-    /* 5. Metrics Styling */
-    div[data-testid="stMetric"] {
-        background-color: #1e293b;
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #334155;
-        text-align: center;
-    }
-    div[data-testid="stMetricLabel"] {
-        color: #94a3b8; /* Slate-400 */
-        font-size: 0.8rem;
-    }
-    div[data-testid="stMetricValue"] {
-        color: #38bdf8; /* Sky-400 */
-        font-size: 1.8rem;
-    }
-    
-    /* 6. Button Styling (Neon Green/Emerald Gradient) */
-    .stButton>button {
-        background: linear-gradient(to right, #10b981, #059669);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        font-weight: bold;
-        transition: all 0.2s;
-        width: 100%;
-    }
-    .stButton>button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
-    }
-    
-    /* 7. Input Fields */
-    .stTextInput>div>div>input, .stNumberInput>div>div>input, .stSelectbox>div>div>div {
-        background-color: #334155;
-        color: white;
-        border-radius: 8px;
-        border: 1px solid #475569;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 3. LOGIC & DATA (Same Backend, New Frontend) ---
-
+# --- 2. DATA & LOGIC ---
 EXERCISES = {
     "Push Ups": 3.8, "Squats": 5.0, "Running (Jog)": 7.0, "Bench Press": 6.0,
     "Pull Ups": 8.0, "Plank": 3.0, "Deadlift": 6.0, "Cycling": 7.5,
@@ -102,124 +28,126 @@ def calculate_calories(met, weight, sets, reps):
     if reps > 15: duration_min *= 1.2
     return round((met * 3.5 * weight) / 200 * duration_min, 1)
 
-# --- 4. THE TITAN PRO INTERFACE ---
-
-# HEADER SECTION
-col_logo, col_title = st.columns([1, 6])
-with col_logo:
-    st.markdown("<h1 style='text-align: center; font-size: 40px;'>⚡</h1>", unsafe_allow_html=True)
-with col_title:
-    st.markdown("<h1 style='color: white; margin-bottom: 0px;'>TITAN PRO</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #94a3b8; margin-top: -15px;'>Advanced Performance Tracker</p>", unsafe_allow_html=True)
-
-st.markdown("---")
-
-# USER PROFILE SIDEBAR (Clean & Minimal)
+# --- 3. SIDEBAR (User Profile) ---
 with st.sidebar:
-    st.markdown("### 👤 PILOT PROFILE")
-    name = st.text_input("Name", "User 01")
-    col_s1, col_s2 = st.columns(2)
-    with col_s1:
-        weight = st.number_input("Kg", 30.0, 200.0, 70.0)
-    with col_s2:
-        height = st.number_input("Meters", 1.0, 2.5, 1.75)
+    st.title("⚡ TITAN PRO")
+    ui.badges(badge_list=[("Pilot Mode", "default"), ("v1.0.0", "outline")], class_name="flex gap-2", key="badges")
     
+    st.markdown("---")
+    st.markdown("### 👤 User Profile")
+    name = st.text_input("Username", "TitanUser")
+    weight = st.number_input("Weight (kg)", 30.0, 200.0, 70.0)
+    height = st.number_input("Height (m)", 1.0, 2.5, 1.75)
+    
+    # Calculate BMI
     bmi = weight / (height ** 2)
     
-    # Download Button logic styled cleanly
+    st.markdown("---")
+    # Export Button styled nicely
     if st.session_state.log:
         df = pd.DataFrame(st.session_state.log)
         csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Export Data", csv, "titan_log.csv", "text/csv")
+        st.download_button("📥 Export CSV", csv, "titan_log.csv", "text/csv", use_container_width=True)
 
-# DASHBOARD GRID
-col_left, col_right = st.columns([1.5, 2.5], gap="large")
+# --- 4. MAIN DASHBOARD ---
 
-# LEFT COLUMN: HEALTH METRICS (Visual Heavy)
-with col_left:
-    st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-    st.markdown("### 🩺 Body Composition")
+# Header Section
+ui.card(title=f"Welcome back, {name}", content="Ready to crush your goals?", description=datetime.now().strftime("%A, %d %B %Y"), key="header_card").render()
+
+# Layout Grid
+col1, col2 = st.columns([1.5, 2.5])
+
+with col1:
+    st.markdown("### 🩺 Health Status")
     
-    # Custom BMI Gauge Color Logic
-    if bmi < 18.5: gauge_color = "#38bdf8" # Blue
-    elif 18.5 <= bmi < 25: gauge_color = "#4ade80" # Green
-    elif 25 <= bmi < 30: gauge_color = "#fbbf24" # Orange
-    else: gauge_color = "#f87171" # Red
-    
-    status_text = "Healthy"
-    if bmi < 18.5: status_text = "Underweight"
-    elif bmi >= 25: status_text = "Overweight"
+    # Determine Health State
+    if bmi < 18.5: 
+        state_color = "blue"
+        state_label = "Underweight"
+    elif 18.5 <= bmi < 25: 
+        state_color = "green"
+        state_label = "Healthy"
+    elif 25 <= bmi < 30: 
+        state_color = "orange"
+        state_label = "Overweight"
+    else: 
+        state_color = "red"
+        state_label = "Obese"
 
-    # Plotly Gauge with Dark Theme
+    # Use a Shadcn Metric Card for BMI
+    ui.metric_card(
+        title="BMI Index",
+        content=f"{bmi:.1f}",
+        description=f"Status: {state_label}",
+        key="bmi_card"
+    ).render()
+
+    # Visual Gauge (Plotly fits inside the column nicely)
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = bmi,
-        number = {'font': {'color': "white"}},
         gauge = {
-            'axis': {'range': [10, 40], 'tickcolor': "white"},
-            'bar': {'color': gauge_color},
-            'bgcolor': "#1e293b",
-            'bordercolor': "#334155",
+            'axis': {'range': [10, 40]},
+            'bar': {'color': state_color},
+            'bgcolor': "white",
             'steps': [
-                {'range': [0, 18.5], 'color': "rgba(56, 189, 248, 0.3)"},
-                {'range': [18.5, 25], 'color': "rgba(74, 222, 128, 0.3)"},
-                {'range': [25, 40], 'color': "rgba(248, 113, 113, 0.3)"}
+                {'range': [0, 18.5], 'color': "#e0f2fe"}, # light blue
+                {'range': [18.5, 25], 'color': "#dcfce7"}, # light green
+                {'range': [25, 30], 'color': "#ffedd5"}, # light orange
+                {'range': [30, 40], 'color': "#fee2e2"}  # light red
             ],
         }
     ))
-    fig.update_layout(paper_bgcolor="#1e293b", font={'color': "white"}, height=250, margin=dict(t=30,b=20,l=30,r=30))
+    fig.update_layout(height=250, margin=dict(t=10,b=10,l=20,r=20))
     st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown(f"<div style='text-align: center; color: {gauge_color}; font-weight: bold; font-size: 1.2rem;'>{status_text}</div>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True) # End Card
 
-# RIGHT COLUMN: WORKOUT CONSOLE
-with col_right:
-    # 1. INPUT CONSOLE
-    st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-    st.markdown("### ⚡ Command Center")
-    with st.form("titan_form", clear_on_submit=True):
+with col2:
+    st.markdown("### ⚡ Command Console")
+    
+    # The Input Form wrapped in a container for "Card" look
+    with st.container(border=True):
         c1, c2, c3 = st.columns([2, 1, 1])
         with c1:
-            exercise = st.selectbox("Exercise Module", list(EXERCISES.keys()))
+            exercise = st.selectbox("Select Module", list(EXERCISES.keys()))
         with c2:
             sets = st.number_input("Sets", 1, 10, 3)
         with c3:
             reps = st.number_input("Reps", 1, 50, 10)
         
-        submit = st.form_submit_button("LOG ACTIVITY")
-        
-        if submit:
+        # Primary Action Button
+        if ui.button("Log Activity", key="log_btn", variant="primary"):
             cals = calculate_calories(EXERCISES[exercise], weight, sets, reps)
             st.session_state.log.append({
                 "Time": datetime.now().strftime("%H:%M"),
                 "Exercise": exercise,
-                "Vol": f"{sets}x{reps}",
+                "Sets": sets,
+                "Reps": reps,
                 "Burn": cals
             })
-            st.toast(f"Activity Logged: {exercise} (-{cals} kcal)", icon="🔥")
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.rerun() # Refresh to show new stats immediately
 
-    # 2. STATS OVERVIEW
-    if st.session_state.log:
-        df = pd.DataFrame(st.session_state.log)
-        total_cals = df['Burn'].sum()
-        total_sets = sum(int(x.split('x')[0]) for x in df['Vol'])
-        
-        # Row of Metrics
-        m1, m2, m3 = st.columns(3)
-        with m1: m1.metric("Total Burn", f"{total_cals} kcal")
-        with m2: m2.metric("Total Volume", f"{total_sets} sets")
-        with m3: m3.metric("Session Count", len(df))
-        
-        # 3. HISTORY TABLE
-        st.markdown("### 📜 Mission History")
-        # Style the dataframe container
-        st.dataframe(
-            df, 
-            use_container_width=True, 
-            hide_index=True,
-            column_config={
-                "Burn": st.column_config.NumberColumn("Burn (kcal)", format="%.1f 🔥")
-            }
-        )
+# --- 5. STATISTICS ROW ---
+st.markdown("### 📊 Mission Analytics")
+
+if st.session_state.log:
+    df = pd.DataFrame(st.session_state.log)
+    total_cals = df['Burn'].sum()
+    total_sets = df['Sets'].sum()
+    total_sessions = len(df)
+    
+    # Three Metric Cards in a row using Shadcn UI
+    cols = st.columns(3)
+    with cols[0]:
+        ui.metric_card(title="Total Burn", content=f"{total_cals} kcal", description="Estimated energy expenditure", key="m1").render()
+    with cols[1]:
+        ui.metric_card(title="Volume", content=f"{total_sets} sets", description="Total resistance volume", key="m2").render()
+    with cols[2]:
+        ui.metric_card(title="Sessions", content=f"{total_sessions}", description="Exercises completed today", key="m3").render()
+
+    # Data Table styled
+    st.markdown("<br>", unsafe_allow_html=True)
+    ui.table(data=df, key="history_table")
+
+else:
+    # Empty State (Styled Alert)
+    ui.alert(title="No Activity Detected", description="Log your first exercise above to initialize analytics.", variant="secondary", key="alert").render()
