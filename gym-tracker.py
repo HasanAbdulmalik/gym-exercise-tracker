@@ -45,13 +45,13 @@ st.markdown("""
     /* 1. FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap');
     
-    /* 2. MAIN BACKGROUND - DEEP RADIAL GRADIENT */
+    /* 2. MAIN BACKGROUND */
     .stApp {
         background: radial-gradient(circle at 50% 0%, #1f2937 0%, #030712 60%, #000000 100%);
         font-family: 'Inter', sans-serif;
     }
     
-    /* 3. HEADERS - NEON TEXT */
+    /* 3. HEADERS */
     h1, h2, h3, h4 {
         font-family: 'Rajdhani', sans-serif !important;
         text-transform: uppercase;
@@ -60,28 +60,45 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
     
-    /* HIDE JUNK */
-    #MainMenu, footer, header {visibility: hidden;}
+    /* 4. SIDEBAR TOGGLE ARROW FIX */
+    /* We hide the header decoration but FORCE the sidebar button to show */
+    header {visibility: hidden;}
+    [data-testid="stSidebarCollapsedControl"] {
+        visibility: visible !important;
+        display: block !important;
+        color: #3b82f6 !important; /* Neon Blue Arrow */
+        background-color: rgba(30, 41, 59, 0.5);
+        border-radius: 50%;
+        padding: 5px;
+        transition: all 0.3s;
+    }
+    [data-testid="stSidebarCollapsedControl"]:hover {
+        background-color: #3b82f6;
+        color: white !important;
+        box-shadow: 0 0 15px #3b82f6;
+    }
     
-    /* 4. TRUE GLASSMORPHISM CARDS */
+    /* HIDE JUNK */
+    #MainMenu, footer {visibility: hidden;}
+    
+    /* 5. TITAN GLASS CARDS */
     .titan-card {
-        background: rgba(30, 41, 59, 0.4); /* Semi-transparent blue-grey */
+        background: rgba(30, 41, 59, 0.4);
         backdrop-filter: blur(16px) saturate(180%);
         -webkit-backdrop-filter: blur(16px) saturate(180%);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-top: 1px solid rgba(255, 255, 255, 0.15); /* Highlight on top */
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 24px;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .titan-card:hover {
         border-color: rgba(59, 130, 246, 0.3);
         box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
     }
 
-    /* 5. EXERCISE STACK ITEM */
+    /* 6. EXERCISE STACK ITEM */
     .exercise-card {
         background: linear-gradient(90deg, rgba(20, 20, 25, 0.8), rgba(35, 35, 45, 0.6));
         border-left: 4px solid #3b82f6;
@@ -96,20 +113,19 @@ st.markdown("""
     }
     @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
 
-    /* 6. INPUT FIELDS (HOLOGRAPHIC) */
+    /* 7. INPUT FIELDS */
     .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
         background-color: rgba(0, 0, 0, 0.3) !important;
         color: #e5e7eb !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 8px !important;
-        transition: border-color 0.3s, box-shadow 0.3s;
     }
     .stTextInput input:focus, .stNumberInput input:focus {
         border-color: #3b82f6 !important;
         box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
     }
     
-    /* 7. BUTTONS (NEON) */
+    /* 8. BUTTONS */
     .stButton button {
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: white;
@@ -121,14 +137,13 @@ st.markdown("""
         padding: 0.6rem 1rem;
         letter-spacing: 1px;
         transition: all 0.3s ease;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .stButton button:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
     }
 
-    /* 8. FINISH BUTTON (EMERALD GLOW) */
+    /* 9. FINISH BUTTON */
     .finish-btn button {
         background: linear-gradient(135deg, #059669, #047857) !important;
     }
@@ -136,7 +151,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(16, 185, 129, 0.6) !important;
     }
 
-    /* 9. BMI GRADIENT BAR */
+    /* 10. BMI GRADIENT BAR */
     .bmi-bar-bg {
         width: 100%;
         height: 12px;
@@ -160,7 +175,7 @@ st.markdown("""
         transition: left 0.5s ease;
     }
 
-    /* 10. PULSING DOT FOR STATUS */
+    /* 11. STATUS DOT */
     .status-dot {
         height: 10px;
         width: 10px;
@@ -222,7 +237,6 @@ with st.sidebar:
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # STATUS INDICATOR
     if not st.session_state.connected:
         st.markdown(f"""
             <div style="display:flex; align-items:center; background:rgba(239, 68, 68, 0.1); padding:10px; border-radius:8px; border:1px solid rgba(239, 68, 68, 0.3);">
@@ -278,7 +292,7 @@ else:
             st.markdown(f"<h1 style='color: {color} !important; font-size: 4rem; margin:0; line-height:1;'>{bmi:.1f}</h1>", unsafe_allow_html=True)
             st.markdown(f"<p style='color: {color} !important; font-weight:bold; letter-spacing: 3px; font-size:0.9rem;'>CONDITION: {status}</p>", unsafe_allow_html=True)
 
-            # Advanced Gradient Bar
+            # Gradient Bar
             pct = max(0, min(100, (bmi - 10) / 30 * 100))
             st.markdown(f"""
             <div class="bmi-bar-bg">
