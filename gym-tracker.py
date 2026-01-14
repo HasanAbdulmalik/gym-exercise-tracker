@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 import json
 import os
 
-# --- 1. CONFIGURATION ---
 st.set_page_config(
     page_title="Titan Pro Gym Tracker",
     page_icon="⚡",
@@ -13,7 +12,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. DATABASE ENGINE ---
 DB_FILE = "titan_db.json"
 
 def load_data():
@@ -39,19 +37,15 @@ if 'current_workout' not in st.session_state:
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
-# --- 3. ULTRA CSS ENGINE ---
 st.markdown("""
     <style>
-    /* 1. FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap');
-    
-    /* 2. MAIN BACKGROUND */
+
     .stApp {
-        background: radial-gradient(circle at 50% 0%, #1f2937 0%, #030712 60%, #000000 100%);
+        background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 60%, #000000 100%);
         font-family: 'Inter', sans-serif;
     }
-    
-    /* 3. HEADERS */
+
     h1, h2, h3, h4 {
         font-family: 'Rajdhani', sans-serif !important;
         text-transform: uppercase;
@@ -59,48 +53,7 @@ st.markdown("""
         color: #e5e7eb !important;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
-    
-    /* --- FIX: SIDEBAR TOGGLE VISIBILITY --- */
-    
-    /* Make the header transparent but NOT hidden */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-    }
-    
-    /* Hide the top colored decoration line */
-    [data-testid="stDecoration"] {
-        display: none;
-    }
-    
-    /* Hide the 'Deploy' button and hamburger menu if you want a cleaner look */
-    .stDeployButton {
-        display: none;
-    }
-    
-    /* FORCE THE SIDEBAR ARROW TO BE VISIBLE AND STYLED */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: block !important;
-        color: #3b82f6 !important; /* Neon Blue */
-        background-color: rgba(15, 23, 42, 0.8); /* Dark Blue Bg */
-        border: 1px solid #3b82f6;
-        border-radius: 8px;
-        padding: 4px;
-        margin-top: 10px;
-        margin-left: 10px;
-        transition: all 0.3s ease;
-    }
-    
-    [data-testid="stSidebarCollapsedControl"]:hover {
-        background-color: #3b82f6;
-        color: white !important;
-        box-shadow: 0 0 15px #3b82f6;
-        transform: scale(1.1);
-    }
-    
-    /* HIDE FOOTER ONLY */
-    footer {visibility: hidden;}
-    
-    /* 4. TITAN GLASS CARDS */
+
     .titan-card {
         background: rgba(30, 41, 59, 0.4);
         backdrop-filter: blur(16px) saturate(180%);
@@ -111,9 +64,15 @@ st.markdown("""
         padding: 24px;
         margin-bottom: 24px;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease; /* SMOOTH ANIMATION */
+    }
+    
+    .titan-card:hover {
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        transform: translateY(-2px);
     }
 
-    /* 5. EXERCISE STACK ITEM */
     .exercise-card {
         background: linear-gradient(90deg, rgba(20, 20, 25, 0.8), rgba(35, 35, 45, 0.6));
         border-left: 4px solid #3b82f6;
@@ -128,37 +87,39 @@ st.markdown("""
     }
     @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
 
-    /* 6. INPUT FIELDS */
     .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
         background-color: rgba(0, 0, 0, 0.3) !important;
         color: #e5e7eb !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 8px !important;
+        transition: all 0.3s ease;
+    }
+   
+    .stTextInput input:hover, .stNumberInput input:hover, .stSelectbox div[data-baseweb="select"]:hover {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.2) !important;
     }
     .stTextInput input:focus, .stNumberInput input:focus {
         border-color: #3b82f6 !important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
-    }
-    
-    /* 7. BUTTONS */
-    .stButton button {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: white;
-        font-family: 'Rajdhani', sans-serif;
-        font-weight: 700;
-        font-size: 1.1rem;
-        border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1rem;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-    }
-    .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
     }
 
-    /* 8. FINISH BUTTON */
+    div[data-testid="stForm"] button {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+        color: white !important;
+        font-family: 'Rajdhani', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+    div[data-testid="stForm"] button:hover {
+        box-shadow: 0 0 25px rgba(37, 99, 235, 0.7) !important;
+        transform: scale(1.02) !important;
+    }
+
     .finish-btn button {
         background: linear-gradient(135deg, #059669, #047857) !important;
     }
@@ -166,7 +127,6 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(16, 185, 129, 0.6) !important;
     }
 
-    /* 9. BMI GRADIENT BAR */
     .bmi-bar-bg {
         width: 100%;
         height: 12px;
@@ -190,31 +150,22 @@ st.markdown("""
         transition: left 0.5s ease;
     }
 
-    /* 10. STATUS DOT */
-    .status-dot {
-        height: 10px;
-        width: 10px;
-        background-color: #4ade80;
-        border-radius: 50%;
-        display: inline-block;
-        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
-        animation: pulse 2s infinite;
-        margin-right: 8px;
+    header[data-testid="stHeader"] { background: transparent !important; }
+    [data-testid="stDecoration"] { display: none; }
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        color: #3b82f6 !important;
+        background-color: rgba(15, 23, 42, 0.8);
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+        padding: 4px;
+        margin-top: 10px;
+        margin-left: 10px;
     }
-    .status-dot-off {
-        background-color: #ef4444;
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-        animation: none;
-    }
-    @keyframes pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-    }
+    #MainMenu, footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. GYM DATA ---
 EXERCISES_DB = {
     "Barbell Squat": {"met": 6.0, "icon": "🏋️‍♂️"},
     "Bench Press": {"met": 5.0, "icon": "💪"},
@@ -223,19 +174,15 @@ EXERCISES_DB = {
     "Barbell Row": {"met": 5.5, "icon": "🚣"},
     "Lat Pulldown": {"met": 4.0, "icon": "🔽"},
     "Dumbbell Lunges": {"met": 5.0, "icon": "🦵"},
-    "Leg Press": {"met": 4.5, "icon": "🦵"},
     "Incline Bench": {"met": 5.0, "icon": "📐"},
     "Bicep Curls": {"met": 3.5, "icon": "💪"},
     "Tricep Extensions": {"met": 3.5, "icon": "🦾"},
-    "Leg Extensions": {"met": 4.0, "icon": "🦵"},
-    "Face Pulls": {"met": 4.0, "icon": "👺"},
 }
 
 def calculate_calories(met, weight, sets, reps):
     duration_min = sets * 2.5
     return round((met * 3.5 * weight) / 200 * duration_min, 1)
 
-# --- 5. SIDEBAR ---
 with st.sidebar:
     st.markdown("## ⚡ TITAN PRO")
     st.markdown("<p style='opacity:0.6; font-size:0.8rem; margin-top:-15px;'>TACTICAL PERFORMANCE TRACKER</p>", unsafe_allow_html=True)
@@ -253,34 +200,19 @@ with st.sidebar:
     st.markdown("<br>", unsafe_allow_html=True)
     
     if not st.session_state.connected:
-        st.markdown(f"""
-            <div style="display:flex; align-items:center; background:rgba(239, 68, 68, 0.1); padding:10px; border-radius:8px; border:1px solid rgba(239, 68, 68, 0.3);">
-                <div class="status-dot status-dot-off"></div>
-                <span style="color:#f87171; font-weight:bold;">OFFLINE</span>
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("INITIALIZE UPLINK"):
             st.session_state.connected = True
             st.rerun()
     else:
-        st.markdown(f"""
-            <div style="display:flex; align-items:center; background:rgba(74, 222, 128, 0.1); padding:10px; border-radius:8px; border:1px solid rgba(74, 222, 128, 0.3);">
-                <div class="status-dot"></div>
-                <span style="color:#4ade80; font-weight:bold;">SYSTEM ONLINE</span>
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.success("🟢 ONLINE")
         if st.button("TERMINATE UPLINK"):
             st.session_state.connected = False
             st.rerun()
 
-# --- 6. MAIN INTERFACE ---
 if not st.session_state.connected:
     st.markdown("""
     <div style='height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #4b5563;'>
         <h1 style='font-size: 5rem; color: #1f2937 !important; text-shadow:none; opacity:0.5;'>LOCKED</h1>
-        <p style="letter-spacing: 3px;">SECURE CONNECTION REQUIRED</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -289,16 +221,13 @@ else:
     
     tab1, tab2 = st.tabs(["🚀 COMMAND CONSOLE", "📊 DATA ARCHIVE"])
 
-    # --- TAB 1: WORKOUT CONSOLE ---
     with tab1:
         col_left, col_right = st.columns([1, 2], gap="large")
 
-        # LEFT: ADVANCED BMI VISUAL
         with col_left:
             st.markdown('<div class="titan-card">', unsafe_allow_html=True)
             st.markdown("### 🧬 BIO-STATUS")
             
-            # BMI Calc
             if bmi < 18.5: status, color = "UNDERWEIGHT", "#60a5fa"
             elif 18.5 <= bmi < 25: status, color = "OPTIMAL", "#34d399"
             elif 25 <= bmi < 30: status, color = "OVERWEIGHT", "#fbbf24"
@@ -307,7 +236,6 @@ else:
             st.markdown(f"<h1 style='color: {color} !important; font-size: 4rem; margin:0; line-height:1;'>{bmi:.1f}</h1>", unsafe_allow_html=True)
             st.markdown(f"<p style='color: {color} !important; font-weight:bold; letter-spacing: 3px; font-size:0.9rem;'>CONDITION: {status}</p>", unsafe_allow_html=True)
 
-            # Gradient Bar
             pct = max(0, min(100, (bmi - 10) / 30 * 100))
             st.markdown(f"""
             <div class="bmi-bar-bg">
@@ -320,18 +248,16 @@ else:
             """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # RIGHT: LOGGING SYSTEM
         with col_right:
             st.markdown('<div class="titan-card">', unsafe_allow_html=True)
             st.markdown("### 📝 ACTIVE PROTOCOL")
             
-            # Input Form
             with st.form("add_exercise_form", clear_on_submit=True):
                 c1, c2, c3 = st.columns([2, 1, 1])
                 with c1: ex_name = st.selectbox("MODULE", list(EXERCISES_DB.keys()))
                 with c2: sets = st.number_input("SETS", 1, 10, 3)
                 with c3: reps = st.number_input("REPS", 1, 50, 10)
-                
+
                 if st.form_submit_button("ADD TO STACK"):
                     cals = calculate_calories(EXERCISES_DB[ex_name]['met'], weight, sets, reps)
                     st.session_state.current_workout.append({
@@ -345,7 +271,6 @@ else:
                     })
                     st.rerun()
 
-            # --- DISPLAY THE STACK (CARDS) ---
             if st.session_state.current_workout:
                 st.markdown("---")
                 st.markdown("#### ⚡ SESSION QUEUE")
@@ -366,14 +291,13 @@ else:
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                # --- FINISH BUTTON ---
                 col_fin, _ = st.columns([1, 1])
                 with col_fin:
                     st.markdown('<div class="finish-btn">', unsafe_allow_html=True)
                     if st.button("✅ COMPLETE PROTOCOL & SAVE"):
                         st.session_state.history = save_session(st.session_state.current_workout)
                         st.session_state.current_workout = []
-                        st.success("PROTOCOL SAVED TO ARCHIVE")
+                        st.success("SAVED TO ARCHIVE")
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
@@ -381,40 +305,61 @@ else:
             
             st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- TAB 2: ANALYTICS ---
     with tab2:
         st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 PERFORMANCE METRICS")
+        st.markdown("### 📊 PERFORMANCE")
         
         if st.session_state.history:
             df = pd.DataFrame(st.session_state.history)
+
+            daily_df = df.groupby("Date")['Burn'].sum().reset_index()
+            daily_df = daily_df.sort_values("Date")
+
+            daily_df['Change'] = daily_df['Burn'].diff()
+            daily_df['Change'] = daily_df['Change'].fillna(1)
             
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=daily_df['Date'], 
+                y=daily_df['Burn'],
+                mode='lines+markers',
+                line=dict(color='#00ff00', width=3), 
+                marker=dict(size=8, color='white', line=dict(width=2, color='#00ff00')),
+                fill='tozeroy', 
+                fillcolor='rgba(0, 255, 0, 0.1)', 
+                name='Energy Output'
+            ))
+
+            fig.update_layout(
+                title="ENERGY OUTPUT (KCALS)",
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(family="Rajdhani", color="white"),
+                xaxis=dict(
+                    showgrid=True, 
+                    gridcolor='rgba(255,255,255,0.1)',
+                    zeroline=False
+                ),
+                yaxis=dict(
+                    showgrid=True, 
+                    gridcolor='rgba(255,255,255,0.1)',
+                    zeroline=False
+                ),
+                hovermode="x unified"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
             m1, m2, m3 = st.columns(3)
-            m1.metric("TOTAL ENERGY EXPENDITURE", f"{int(df['Burn'].sum())} KCAL")
+            m1.metric("TOTAL MARKET CAP (KCAL)", f"{int(df['Burn'].sum())}")
             m2.metric("VOLUME (SETS)", int(df['Sets'].sum()))
             m3.metric("VOLUME (REPS)", int(df['Reps'].sum()))
             
-            st.markdown("---")
-            
-            chart_data = df.groupby("Date")['Burn'].sum().reset_index()
-            fig = px.bar(chart_data, x="Date", y="Burn", 
-                         title="ENERGY OUTPUT TIMELINE",
-                         template="plotly_dark",
-                         color="Burn", 
-                         color_continuous_scale=["#3b82f6", "#8b5cf6"])
-            
-            fig.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font_family="Rajdhani",
-                title_font_size=20
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            
-            with st.expander("ACCESS RAW LOGS"):
+            with st.expander("ACCESS RAW LEDGER"):
                 st.dataframe(df, use_container_width=True)
                 
         else:
-            st.info("ARCHIVE EMPTY. NO DATA AVAILABLE.")
+            st.info("NO MARKET DATA AVAILABLE.")
         
         st.markdown('</div>', unsafe_allow_html=True)
