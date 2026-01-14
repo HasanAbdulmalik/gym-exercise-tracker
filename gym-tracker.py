@@ -18,7 +18,6 @@ st.set_page_config(
 DB_FILE = "titan_db.json"
 
 def load_data():
-    """Loads all historical data from the local JSON file."""
     if not os.path.exists(DB_FILE):
         return []
     try:
@@ -28,7 +27,6 @@ def load_data():
         return []
 
 def save_data(new_entry):
-    """Saves a new entry to the JSON file permanently."""
     data = load_data()
     data.append(new_entry)
     with open(DB_FILE, "w") as f:
@@ -39,7 +37,6 @@ def save_data(new_entry):
 if 'history' not in st.session_state:
     st.session_state.history = load_data()
 
-# Session State for Login/Connection Status
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
@@ -67,13 +64,26 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
     
-    /* CURSOR FIX FOR DROPDOWNS */
-    .stSelectbox div[data-baseweb="select"] {
-        cursor: pointer !important;
+    /* SUCCESS LOG CARD (The "Advanced" Popup) */
+    .log-success-card {
+        background: linear-gradient(90deg, #064e3b, #065f46);
+        border: 1px solid #10b981;
+        color: #ecfdf5;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 20px;
+        animation: fadeIn 0.5s;
     }
-    .stSelectbox div[data-baseweb="select"] * {
-        cursor: pointer !important;
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
+
+    /* CURSOR FIX */
+    .stSelectbox div[data-baseweb="select"] { cursor: pointer !important; }
+    .stSelectbox div[data-baseweb="select"] * { cursor: pointer !important; }
 
     /* TYPOGRAPHY */
     h1, h2, h3 { color: white !important; font-weight: 800 !important; }
@@ -93,7 +103,8 @@ st.markdown("""
         border-radius: 6px;
         font-weight: bold;
         text-align: center;
-        margin-top: 10px;
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
     .status-inactive { background-color: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
     .status-active { background-color: #052e16; color: #4ade80; border: 1px solid #14532d; }
@@ -115,11 +126,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DATA LOGIC ---
-EXERCISES = {
-    "Push Ups": 3.8, "Squats": 5.0, "Running": 7.0, "Bench Press": 6.0,
-    "Pull Ups": 8.0, "Deadlift": 6.0, "Cycling": 7.5, "Burpees": 8.0,
-    "Boxing": 9.0, "HIIT": 10.0, "Yoga": 2.5, "Swimming": 6.0
+# --- 4. DATA LOGIC (NOW WITH ICONS) ---
+# Each exercise now has a 'met' value and an 'icon'
+EXERCISES_DB = {
+    "Push Ups": {"met": 3.8, "icon": "💪"},
+    "Squats": {"met": 5.0, "icon": "🦵"},
+    "Running": {"met": 7.0, "icon": "🏃"},
+    "Bench Press": {"met": 6.0, "icon": "🏋️‍♂️"},
+    "Pull Ups": {"met": 8.0, "icon": "🧗"},
+    "Deadlift": {"met": 6.0, "icon": "🔋"},
+    "Cycling": {"met": 7.5, "icon": "🚴"},
+    "Burpees": {"met": 8.0, "icon": "🔥"},
+    "Boxing": {"met": 9.0, "icon": "🥊"},
+    "HIIT": {"met": 10.0, "icon": "⚡"},
+    "Yoga": {"met": 2.5, "icon": "🧘"},
+    "Swimming": {"met": 6.0, "icon": "🏊‍♂️"}
 }
 
 def calculate_calories(met, weight, sets, reps):
@@ -149,18 +170,21 @@ with st.sidebar:
     # CONNECT BUTTON logic
     if not st.session_state.connected:
         st.markdown('<div class="status-badge status-inactive">🔴 SYSTEM INACTIVE</div>', unsafe_allow_html=True)
+        # Added spacer here
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("INITIALIZE SYSTEM"):
             st.session_state.connected = True
             st.rerun()
     else:
         st.markdown('<div class="status-badge status-active">🟢 SYSTEM CONNECTED</div>', unsafe_allow_html=True)
+        # Added spacer here
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("DISCONNECT"):
             st.session_state.connected = False
             st.rerun()
 
 # --- 6. MAIN INTERFACE ---
 
-# If NOT connected, show locked screen
 if not st.session_state.connected:
     st.markdown("""
         <div style='display: flex; justify-content: center; align-items: center; height: 60vh; flex-direction: column;'>
@@ -169,9 +193,8 @@ if not st.session_state.connected:
         </div>
     """, unsafe_allow_html=True)
 
-# If connected, show the full App
 else:
-    # Clean Header (Removed "Weird Dialogues")
+    # Clean Header
     st.markdown(f"<h1 style='font-size: 2.5rem;'>WELCOME, {name.upper()}</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
@@ -219,7 +242,8 @@ else:
             with st.form("gym_form", clear_on_submit=True):
                 c1, c2, c3 = st.columns([2, 1, 1], gap="medium")
                 with c1:
-                    exercise = st.selectbox("Select Module", list(EXERCISES.keys()))
+                    # Dropdown using the keys
+                    exercise_name = st.selectbox("Select Module", list(EXERCISES_DB.keys()))
                 with c2:
                     sets = st.number_input("Sets", 1, 10, 3)
                 with c3:
@@ -228,19 +252,37 @@ else:
                 st.write("")
                 
                 if st.form_submit_button("LOG WORKOUT"):
-                    # Calculate & Save
-                    cals = calculate_calories(EXERCISES[exercise], weight, sets, reps)
+                    # Get Data from DB
+                    ex_data = EXERCISES_DB[exercise_name]
+                    
+                    # Calculate
+                    cals = calculate_calories(ex_data['met'], weight, sets, reps)
+                    
+                    # Save
                     entry = {
                         "Date": datetime.now().strftime("%Y-%m-%d"),
                         "Time": datetime.now().strftime("%H:%M"),
-                        "Module": exercise,
+                        "Module": exercise_name,
                         "Sets": sets,
                         "Reps": reps,
                         "Burn": cals
                     }
-                    # Save to local file
                     st.session_state.history = save_data(entry)
-                    st.success(f"LOGGED: {exercise} (-{cals} kcal)")
+                    
+                    # --- THE ADVANCED LOG DISPLAY (HTML INJECTION) ---
+                    # This creates the green "Card" popup you wanted
+                    st.markdown(f"""
+                        <div class="log-success-card">
+                            <h3 style="margin:0; color: #ecfdf5 !important; font-size: 1.2rem;">
+                                {ex_data['icon']} &nbsp; {exercise_name.upper()}
+                            </h3>
+                            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-weight: bold;">
+                                <span>🔄 {sets} SETS</span>
+                                <span>⚡ {reps} REPS</span>
+                                <span style="color: #6ee7b7;">🔥 {cals} KCAL</span>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -263,7 +305,6 @@ else:
             
             # GRAPH: Calories over Time
             st.markdown("#### 🔥 Calorie Burn Timeline")
-            # Group by Date to make the chart cleaner
             chart_df = df.groupby("Date")['Burn'].sum().reset_index()
             
             fig_hist = px.bar(
