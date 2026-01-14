@@ -224,7 +224,7 @@ if not st.session_state.connected:
 else:
     st.markdown(f"<h1 style='font-size:3rem; margin-bottom:10px;'>WELCOME, <span style='color:#3b82f6;'>{name.upper()}</span></h1>", unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["🚀 COMMAND CONSOLE", "📊 DATA ARCHIVE"])
+    tab1, tab2 = st.tabs(["🚀 SESSION REPORT", "📊 DATA ARCHIVE"])
 
     with tab1:
         col_left, col_right = st.columns([1, 2], gap="large")
@@ -255,7 +255,7 @@ else:
 
         with col_right:
             st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-            st.markdown("### 📝 ACTIVE PROTOCOL")
+            st.markdown("### 📝 ACTIVE SESSION")
             
             with st.form("add_exercise_form", clear_on_submit=True):
                 c1, c2, c3 = st.columns([2, 1, 1])
@@ -299,20 +299,20 @@ else:
                 col_fin, _ = st.columns([1, 1])
                 with col_fin:
                     st.markdown('<div class="finish-btn">', unsafe_allow_html=True)
-                    if st.button("✅ COMPLETE PROTOCOL & SAVE"):
+                    if st.button("✅ COMPLETE SESSION & SAVE"):
                         st.session_state.history = save_session(st.session_state.current_workout)
                         st.session_state.current_workout = []
                         st.success("SAVED TO ARCHIVE")
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
-                st.info("PROTOCOL EMPTY. INITIATE FIRST MODULE.")
+                st.info("STACK EMPTY. UPDATE YOUR WORKOUTS.")
             
             st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
         st.markdown('<div class="titan-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 MARKET PERFORMANCE")
+        st.markdown("### 📊 PERFORMANCE GRAPH")
         
         if st.session_state.history:
             df = pd.DataFrame(st.session_state.history)
@@ -357,14 +357,15 @@ else:
             st.plotly_chart(fig, use_container_width=True)
             
             m1, m2, m3 = st.columns(3)
-            m1.metric("TOTAL MARKET CAP (KCAL)", f"{int(df['Burn'].sum())}")
+            m1.metric("TOTAL CALORIES BURNED (KCAL)", f"{int(df['Burn'].sum())}")
             m2.metric("VOLUME (SETS)", int(df['Sets'].sum()))
             m3.metric("VOLUME (REPS)", int(df['Reps'].sum()))
             
-            with st.expander("ACCESS RAW LEDGER"):
+            with st.expander("ACCESS LOG ENTRIES"):
                 st.dataframe(df, use_container_width=True)
                 
         else:
-            st.info("NO MARKET DATA AVAILABLE.")
+            st.info("NO LOG DATA AVAILABLE.")
         
         st.markdown('</div>', unsafe_allow_html=True)
+
